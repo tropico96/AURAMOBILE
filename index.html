@@ -1062,6 +1062,52 @@ document.getElementById('stop-btn').addEventListener('click', () => {
   toast('✅ Completato! +320 punti AURA 🏆', 'gr');
 });
 
+// ── CAMERA AUTO START ──────────────────────────────
+let cameraStream = null;
+let cameraActive = false;
+
+async function startCamera() {
+  if (cameraActive) return;
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false 
+    });
+    cameraActive = true;
+    toast('📹 Camera accesa', 'gr');
+  } catch (err) {
+    console.log('Permesso camera negato o device non disponibile:', err);
+    toast('📹 Camera non disponibile', 'or');
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+    cameraActive = false;
+    toast('📹 Camera spenta', 'bl');
+  }
+}
+
+// Accendi camera automaticamente quando vai nella tab Camera
+const cameraTabs = document.querySelectorAll('[data-tab="camera"]');
+cameraTabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    setTimeout(startCamera, 100);
+  });
+});
+
+// Spegni camera se lasci la tab
+const tabButtons = document.querySelectorAll('.nb');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!btn.classList.contains('on') || !btn.dataset.tab || btn.dataset.tab !== 'camera') {
+      stopCamera();
+    }
+  });
+});
+
 // ── CAMERA SHUTTER ─────────────────────────────────
 document.getElementById('shutter').addEventListener('click', () => {
   const vp = document.getElementById('vp');
